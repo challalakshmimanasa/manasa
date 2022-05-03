@@ -1,0 +1,50 @@
+trigger Batch23 on Account (After Update, before Update, After Insert, After Delete) {
+    
+   
+    if(trigger.isAfter){
+        if(trigger.isInsert){
+            
+            for(Account acc : trigger.new){
+                list<Contact> conInsert = new list<Contact>();
+                Contact con = new Contact();
+                con.AccountId = acc.Id;
+                con.LastName = acc.Name;
+                conInsert.add(con);
+                Insert conInsert;
+                
+             for(Account acc1 : trigger.new){
+                list<Opportunity> oppInsert = new list<Opportunity>();
+                Opportunity opp = new opportunity();
+                opp.AccountId = acc1.Id;
+                opp.Name = acc1.Name;
+                opp.StageName = 'prospecting';
+                opp.CloseDate = system.today();
+                oppInsert.add(opp);
+                Insert oppInsert;
+           }  
+        }
+}
+}
+    if(trigger.isUpdate){
+        list<Contact> lstToBeUpdated = new list<Contact>();
+        set<id> accids = new set<id>();
+        for(Account acc : trigger.new){
+            if(acc.BillingCountry != trigger.oldmap.get(acc.id).BillingCountry){
+              accids.add(acc.id);
+            }
+        
+        
+        if(!accids.isEmpty()){
+            
+            for(Contact con :[SELECT id,Accountid,MailingCountry FROM Contact WHERE Accountid = :accids]){
+            con.MailingCountry =  acc.BillingCountry;
+            lstToBeUpdated.add(con);
+        }
+        }
+        }
+        if(!lstToBeUpdated.isEmpty()){
+            Update lstToBeUpdated;
+            
+        }
+    }
+}
